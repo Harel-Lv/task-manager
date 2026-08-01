@@ -8,7 +8,11 @@ function App() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
- 
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingDescription, setEditingDescription] = useState("");
+ const [searchTerm, setSearchTerm] = useState("");
+ const [Statusfilter, setStatusFilter] = useState("all");
  
  
   useEffect(() => {
@@ -77,14 +81,58 @@ function App() {
       }
     }
 
+    function handleEditTask(task) {
+      setEditingTaskId(task.id);
+      setEditingTitle(task.title);
+      setEditingDescription(task.description || "");
+      setError(null);
+    }
+
+    function handleCancelEdit() {
+      setEditingTaskId(null);
+      setEditingTitle("");
+      setEditingDescription("");
+    }
+
+    async function handleUpdateTask() {
+      if (editingTitle.trim() === "") {
+        setError("Title is required");
+        return;
+      }
+      try {
+        setError(null);
+        const updatedTask = await updateTask(editingTaskId, {
+          title: editingTitle.trim(),
+          description: editingDescription.trim() || null,
+        });
+        setTasks(currentTasks =>
+          currentTasks.map(t => (t.id === editingTaskId ? updatedTask : t))
+        );
+        handleCancelEdit();
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+
+    const filteredTasks = tasks.filter(task => {
+      const matchesSearchTerm = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatusFilter =
+        Statusfilter === "all" ||
+        (Statusfilter === "completed" && task.completed) ||
+        (Statusfilter === "incomplete" && !task.completed);
+      return matchesSearchTerm && matchesStatusFilter;
+    });
+
 
   return (
-    <div>
+    <div  className="app">
+
+
       <h1>Task Manager</h1>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <form onSubmit={handleSubmit}>
+      <form className="task-form" onSubmit={handleSubmit}>
         <div>
           <label htmlFor="title">Title:</label>
           <input
@@ -111,26 +159,77 @@ function App() {
         </button>
 
       </form>
+
+      <section>
+
+        <label htmlFor="sreach">sreach task</label>
+
+        <input
+
+        id="search"
+        type="search"
+        value={searchTerm}
+        onChange={(event) => setSearchTerm(event.target.value)}
+        placeholder="Search by title"
+        ></input>
+
+
+      <label htmlFor="status-filter">Filter by status:</label>
+
+      <select
+        id="status-filter"
+        value={Statusfilter}
+        onChange={(event) => setStatusFilter(event.target.value)}
+      >
+        <option value="all">All</option>
+        <option value="completed">Completed</option>
+        <option value="incomplete">Incomplete</option>
+      </select>
+      </section>
+
       
-      {tasks.length === 0 ? (
+      {filteredTasks.length === 0 ? (
         <p>No tasks yet</p>
       ) : (
-        <ul>
-          {tasks.map((task) => (
-            <li key={task.id}>
+        <ul className="task-list">
+          {filteredTasks.map((task) => (
+            <li key={task.id}
+             className={`task-card ${task.completed ? "completed" : ""}`}>      
+            {editingTaskId === task.id ? (
+              <div>
+                <input
+                  type="text"
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                />
+                <textarea
+                  value={editingDescription}
+                  onChange={(e) => setEditingDescription(e.target.value)}
+                />
+                
+                <button onClick={handleUpdateTask}>Save</button>
+                <button onClick={handleCancelEdit}>Cancel</button>
+              </div>
+            ) : (
+              <div className="task-actions">
               <h2>{task.title}</h2>
-
               {task.description && <p>{task.description}</p>}
-
-              <p>Status: {task.completed ? "Completed" : "Incomplete"}</p>
-              <button onClick={() => handleToggleComplete(task)}>
-               {task.completed ? "MARK INCOMPLETE" : "MARK COMPLETE"}
+              <p>status: {task.completed ? "Completed" : "Incomplete"}</p>
+              <button onClick={() => handleEditTask(task)}>
+                Edit
               </button>
+              <button onClick={() => handleToggleComplete(task)}>
+                {task.completed ? "Mark Incomplete" : "Mark Complete"}
+              </button>
+              <button onClick={() => handleDeleteTask(task.id)}>
+                Delete
+              </button>
+            </div>
+            )}
 
-              <button onClick={() => handleDeleteTask(task.id)}>DELETE</button>
+         
 
-            </li>
-
+          </li>
           ))}
         </ul>
       )}

@@ -21,10 +21,15 @@ export async function addTask(req, res, next) {
     const { title, description, completed } = req.body;
 
     if (!title || typeof title !== "string" || title.trim() === "") {
-      return res.status(400).json({
+         res.status(400).json({
         message: "Title is required",
       });
     }
+    if(title.trim().length > 100)
+            return res.status(400).json({
+        message: "Title must be less than 100 characters",
+       });
+      return
        if (
          description !== undefined &&
          description !== null &&
@@ -33,7 +38,14 @@ export async function addTask(req, res, next) {
         return res.status(400).json({
         message: "Description must be a string",
        });
-}
+         }
+
+        if (typeof description === "string" && description.length > 500) {
+        return res.status(400).json({
+            message: "Description must be less than 500 characters",
+        });
+    }
+
       if (completed !== undefined && typeof completed !== "boolean") {
       return res.status(400).json({
         message: "Completed must be a boolean",
@@ -92,7 +104,19 @@ export async function updateTask(req, res, next) {
       });
     }
 
+    if(title.trim().length > 100){
+        return res.status(400).json({
+            message: "Title must be less than 100 characters",
+        });
+    }
+
     const { title, description, completed } = req.body;
+
+    if (!title && !description && completed === undefined) {
+      return res.status(400).json({
+        message: "At least one field (title, description, completed) must be provided for update",
+      });
+    }
 
 if (title !== undefined) {
       if (typeof title !== "string" || title.trim() === "") {
