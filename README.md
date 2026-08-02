@@ -16,8 +16,8 @@ The project was built with React on the client side and Express on the server si
 
 ## Project Structure
 
-- `client` – React application
-- `server` – REST API and database logic
+`client` - React application
+`server` - REST API and database logic
 
 ## Running the Project
 
