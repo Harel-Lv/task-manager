@@ -29,8 +29,7 @@ export async function addTask(req, res, next) {
             return res.status(400).json({
         message: "Title must be less than 100 characters",
        });
-      return
-       if (
+    if (
          description !== undefined &&
          description !== null &&
          typeof description !== "string"
@@ -40,7 +39,7 @@ export async function addTask(req, res, next) {
        });
          }
 
-        if (typeof description === "string" && description.length > 500) {
+     if (typeof description === "string" && description.length > 500) {
         return res.status(400).json({
             message: "Description must be less than 500 characters",
         });
@@ -97,6 +96,8 @@ export async function updateTask(req, res, next) {
         });
     }
     const existingTask = await getTaskById(id);
+    const { title, description, completed } = req.body;
+
 
     if (!existingTask) {
       return res.status(404).json({
@@ -109,8 +110,6 @@ export async function updateTask(req, res, next) {
             message: "Title must be less than 100 characters",
         });
     }
-
-    const { title, description, completed } = req.body;
 
     if (!title && !description && completed === undefined) {
       return res.status(400).json({
